@@ -1,8 +1,15 @@
+CC = gcc
+CFLAGS = -Wall -std=c99 $(shell pkg-config --cflags sdl2)
+LDFLAGS = $(shell pkg-config --libs sdl2)
+
+SRC = ./src/*.c
+TARGET = renderer
+
 build:
-	gcc -Wall -std=c99 ./src/*.c -o renderer
+	$(CC) $(CFLAGS) $(SRC) -o $(TARGET) $(LDFLAGS)
 
 run:
-	./renderer
+	./$(TARGET)
 
 clean:
-	rm renderer
+	rm -f $(TARGET)
