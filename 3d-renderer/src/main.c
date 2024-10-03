@@ -70,7 +70,11 @@ vec2_t project(vec3_t point) {
 
 void update(void) {
 
-	while (SDL_TICKS_PASSED(SDL_GetTicks(), previus_frame_time + FRAME_TARGET_TIME) == false);
+	int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previus_frame_time);
+
+	if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+		SDL_Delay(time_to_wait);
+	}
 
 	previus_frame_time = SDL_GetTicks();
 
