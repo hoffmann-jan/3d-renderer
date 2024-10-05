@@ -1,5 +1,7 @@
 #include "mesh.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "array.h"
 
 mesh_t mesh = {
@@ -48,5 +50,40 @@ void load_cube_mesh_data(void) {
     for (int i = 0; i < N_CUBE_FACES; i++) {
         face_t cube_face = cube_faces[i];
         array_push(mesh.faces, cube_face);
+    }
+}
+
+void load_obj_file(char* filename) {
+    FILE *file = NULL;
+    char *line = NULL;
+    size_t line_length = 0;
+    ssize_t read;
+
+    file = fopen(filename, "r");
+
+    if (file != NULL) {
+        while ((read = getline(&line, &line_length, file)) != -1) {
+            if (strncmp(line, "v ", 2) == 0) {
+                vec3_t vertex;
+                sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+                array_push(mesh.vertices, vertex);
+            }
+
+            if (strncmp(line, "f ", 2) == 0) {
+                int vertex_indicies[3];
+                int texture_indicies[3];
+                int normal_indicies[3];
+                sscanf(line, "f %d/%d/%d %d/%d/%d %d/%d/%d", 
+                &vertex_indicies[0], &texture_indicies[0], &normal_indicies[0],
+                &vertex_indicies[1], &texture_indicies[1], &normal_indicies[1],
+                &vertex_indicies[2], &texture_indicies[2], &normal_indicies[2]);
+
+                face_t face = { .a = vertex_indicies[0], .b = vertex_indicies[1], .c = vertex_indicies[2] };
+                array_push(mesh.faces, face);
+            }
+        }
+
+        free(line);
+        fclose(file);
     }
 }

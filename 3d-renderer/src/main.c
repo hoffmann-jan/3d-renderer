@@ -15,11 +15,11 @@ triangle_t* triangles_to_render = NULL;
 /////////////////////////////////////////////////////////////////////
 // Global variables for execution status and game loop
 /////////////////////////////////////////////////////////////////////
-vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
-float fov_factor = 640;
-
 bool is_running = false;
 int previus_frame_time = 0;
+
+vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
+float fov_factor = 640; 
 
 /////////////////////////////////////////////////////////////////////
 // Setup function to initialize variables and game objects
@@ -38,7 +38,8 @@ void setup(void) {
 	);
 
 	// Loads the cube values in the mesh data structure
-	load_cube_mesh_data();
+	// load_cube_mesh_data();
+	load_obj_file("./assets/f22.obj");
 }
 
 void process_input(void) {
@@ -81,9 +82,9 @@ void update(void) {
 
 	triangles_to_render = NULL;
 
-	mesh.rotation.x += 0.01;
+	mesh.rotation.x += 0.001;
 	mesh.rotation.y += 0.01;
-	mesh.rotation.z += 0.01;
+	mesh.rotation.z += 0.00;
 
 	int number_of_faces = array_length(mesh.faces);
 	for (int i = 0; i < number_of_faces; i++) {
@@ -128,7 +129,7 @@ void render(void) {
 			triangle.points[0].x, triangle.points[0].y,
 			triangle.points[1].x, triangle.points[1].y,
 			triangle.points[2].x, triangle.points[2].y,
-			0xFFFFFF00
+			0xFFFF0000
 		);
 	}
 
