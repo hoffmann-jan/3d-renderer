@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -std=c99 -lm $(shell pkg-config --cflags sdl2)
-LDFLAGS = $(shell pkg-config --libs sdl2)
+CFLAGS = -Wall -std=c99 -lm -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+LDFLAGS = -L/opt/homebrew/lib -lSDL2
 
 SRC = ./src/*.c ./src/app/*.c ./src/data-structures/*.c
 TARGET = renderer
