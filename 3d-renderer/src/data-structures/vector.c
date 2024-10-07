@@ -123,3 +123,16 @@ float vec3_dot_product(vec3_t a, vec3_t b) {
 float vec2_dot_product(vec2_t a, vec2_t b) {
     return (a.x * b.x) + (a.y * b.y);
 }
+
+void vec3_normalize(vec3_t* v) {
+    float lengt = vec3_get_magnitude(*v);
+    v->x /= lengt;
+    v->y /= lengt;
+    v->z /= lengt;
+}
+
+void vec2_normalize(vec2_t* v) {
+    float lengt = vec2_get_magnitude(*v);
+    v->x /= lengt;
+    v->y /= lengt;
+}

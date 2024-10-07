@@ -39,7 +39,7 @@ void setup(void) {
 
 	// Loads the cube values in the mesh data structure
 	// load_cube_mesh_data();
-	load_obj_file("./assets/f22.obj");
+	load_obj_file("./assets/cube.obj");
 }
 
 void process_input(void) {
@@ -118,6 +118,7 @@ void update(void) {
         vec3_t vector_ac = vec3_subtract(vector_c, vector_a);
 
         vec3_t face_normal = vec3_cross_product(vector_ab, vector_ac);
+        vec3_normalize(&face_normal);
         vec3_t camara_ray = vec3_subtract(camera_position, vector_a);
 
         float dot_product = vec3_dot_product(face_normal, camara_ray);
