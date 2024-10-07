@@ -18,7 +18,7 @@ triangle_t* triangles_to_render = NULL;
 bool is_running = false;
 int previus_frame_time = 0;
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
+vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
 float fov_factor = 640; 
 
 /////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ void update(void) {
 
 	triangles_to_render = NULL;
 
-	mesh.rotation.x += 0.001;
+	mesh.rotation.x += 0.02;
 	mesh.rotation.y += 0.01;
 	mesh.rotation.z += 0.00;
 
@@ -95,7 +95,7 @@ void update(void) {
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1];
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-		triangle_t projected_triangle;
+        vec3_t transformend_verticies[3];
 
 		for (int j = 0; j < 3; j++) {
 			vec3_t transformed_vertex = face_vertices[j];
@@ -104,9 +104,32 @@ void update(void) {
 			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
 			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
-			transformed_vertex.z += camera_position.z;
+			transformed_vertex.z += 5;
 
-			vec2_t projected_point = project(transformed_vertex);
+            transformend_verticies[j] = transformed_vertex;
+        }
+
+        // Check backface culling
+        vec3_t vector_a = transformend_verticies[0]; /*   A   */
+        vec3_t vector_b = transformend_verticies[1]; /*  / \  */
+        vec3_t vector_c = transformend_verticies[2]; /* C---B */
+
+        vec3_t vector_ab = vec3_subtract(vector_b, vector_a);
+        vec3_t vector_ac = vec3_subtract(vector_c, vector_a);
+
+        vec3_t face_normal = vec3_cross_product(vector_ab, vector_ac);
+        vec3_t camara_ray = vec3_subtract(camera_position, vector_a);
+
+        float dot_product = vec3_dot_product(face_normal, camara_ray);
+
+        if (dot_product < 0) {
+            continue;
+        }
+
+		triangle_t projected_triangle;
+
+        for (int j = 0; j < 3; j++) {
+			vec2_t projected_point = project(transformend_verticies[j]);
 
 			projected_point.x += (window_width / 2),
 			projected_point.y += (window_height / 2),
@@ -129,7 +152,7 @@ void render(void) {
 			triangle.points[0].x, triangle.points[0].y,
 			triangle.points[1].x, triangle.points[1].y,
 			triangle.points[2].x, triangle.points[2].y,
-			0xFFFF0000
+			0xFF00FF00
 		);
 	}
 

@@ -32,12 +32,11 @@ vec3_t vec3_rotate_z(vec3_t v, float angle)
 }
 
 float vec3_get_magnitude(vec3_t v) {
-    return sqrtf(powf(v.x, 2) + powf(v.y, 2)+ powf(v.z, 2));
+    return sqrt((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
 }
 
 float vec2_get_magnitude(vec2_t v) {
-    vec3_t v3 = { .x = v.x, .y = v.y, .z = 0 };
-    return vec3_get_magnitude(v3);
+    return sqrt((v.x * v.x) + (v.y * v.y));
 }
 
 vec3_t vec3_add(vec3_t a, vec3_t b) {
@@ -118,9 +117,9 @@ vec3_t vec3_cross_product(vec3_t a, vec3_t b) {
 }
 
 float vec3_dot_product(vec3_t a, vec3_t b) {
-    return (a.x * b.x) + (b.x * b.y) + (a.z * b.z);
+    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
 }
 
 float vec2_dot_product(vec2_t a, vec2_t b) {
-    return (a.x * b.x) + (b.x * b.y);
+    return (a.x * b.x) + (a.y * b.y);
 }
