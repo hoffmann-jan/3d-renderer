@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include "display.h"
+#include "render-mode.h"
 #include "../data-structures/array.h"
 #include "../data-structures/mesh.h"
 #include "../data-structures/vector.h"
@@ -21,6 +22,8 @@ int previus_frame_time = 0;
 vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
 float fov_factor = 640; 
 
+render_mode_t render_mode;
+
 /////////////////////////////////////////////////////////////////////
 // Setup function to initialize variables and game objects
 /////////////////////////////////////////////////////////////////////
@@ -36,6 +39,8 @@ void setup(void) {
 		window_width,
 		window_height
 	);
+
+    render_mode_initialize(&render_mode);
 
 	// Loads the cube values in the mesh data structure
 	// load_cube_mesh_data();
@@ -53,6 +58,18 @@ void process_input(void) {
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				is_running = false;
+            if (event.key.keysym.sym == SDLK_1)
+                render_mode_set_wireframe_with_verticies_mode(&render_mode);
+            if (event.key.keysym.sym == SDLK_2)
+                render_mode_set_wireframe_mode(&render_mode);
+            if (event.key.keysym.sym == SDLK_3)
+                render_mode_set_filled_triangles_mode(&render_mode);
+            if (event.key.keysym.sym == SDLK_4)
+                render_mode_set_filled_triangles_with_wireframe_mode(&render_mode);
+            if (event.key.keysym.sym == SDLK_c)
+                render_mode_enable_back_face_culling(&render_mode);
+            if (event.key.keysym.sym == SDLK_d)
+                render_mode_disable_back_face_culling(&render_mode);
 			break;	
 	}
 }
@@ -109,22 +126,24 @@ void update(void) {
             transformend_verticies[j] = transformed_vertex;
         }
 
-        // Check backface culling
-        vec3_t vector_a = transformend_verticies[0]; /*   A   */
-        vec3_t vector_b = transformend_verticies[1]; /*  / \  */
-        vec3_t vector_c = transformend_verticies[2]; /* C---B */
+        if (render_mode.back_face_culling) {
+            // Check backface culling
+            vec3_t vector_a = transformend_verticies[0]; /*   A   */
+            vec3_t vector_b = transformend_verticies[1]; /*  / \  */
+            vec3_t vector_c = transformend_verticies[2]; /* C---B */
 
-        vec3_t vector_ab = vec3_subtract(vector_b, vector_a);
-        vec3_t vector_ac = vec3_subtract(vector_c, vector_a);
+            vec3_t vector_ab = vec3_subtract(vector_b, vector_a);
+            vec3_t vector_ac = vec3_subtract(vector_c, vector_a);
 
-        vec3_t face_normal = vec3_cross_product(vector_ab, vector_ac);
-        vec3_normalize(&face_normal);
-        vec3_t camara_ray = vec3_subtract(camera_position, vector_a);
+            vec3_t face_normal = vec3_cross_product(vector_ab, vector_ac);
+            vec3_normalize(&face_normal);
+            vec3_t camara_ray = vec3_subtract(camera_position, vector_a);
 
-        float dot_product = vec3_dot_product(face_normal, camara_ray);
+            float dot_product = vec3_dot_product(face_normal, camara_ray);
 
-        if (dot_product < 0) {
-            continue;
+            if (dot_product < 0) {
+                continue;
+            }
         }
 
 		triangle_t projected_triangle;
@@ -149,19 +168,48 @@ void render(void) {
 	for (int i = 0; i < number_of_triangles; i++)
 	{
 		triangle_t triangle = triangles_to_render[i];
-		draw_filled_triangle(
-			triangle.points[0].x, triangle.points[0].y,
-			triangle.points[1].x, triangle.points[1].y,
-			triangle.points[2].x, triangle.points[2].y,
-			0xFFFFFFF
-		);
 
-		draw_triangle(
-			triangle.points[0].x, triangle.points[0].y,
-			triangle.points[1].x, triangle.points[1].y,
-			triangle.points[2].x, triangle.points[2].y,
-			0xFF000000
-		);
+        if (render_mode.filled_triangles_mode) {
+            draw_filled_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFFA9A9A9
+            );
+        }
+        if (render_mode.filled_triangles_wireframe_mode) {
+            draw_filled_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFFA9A9A9
+            );
+            draw_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFF00FF00
+            );
+        }
+        if (render_mode.wireframe_mode) {
+            draw_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFF00FF00
+            );
+        }
+        if (render_mode.wireframe_verticies_mode) {
+            draw_triangle(
+                triangle.points[0].x, triangle.points[0].y,
+                triangle.points[1].x, triangle.points[1].y,
+                triangle.points[2].x, triangle.points[2].y,
+                0xFF00FF00
+            );
+            draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFFFF00);
+            draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFFFF00);
+            draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFFFF00);
+        }
 	}
 
 	array_free(triangles_to_render);
