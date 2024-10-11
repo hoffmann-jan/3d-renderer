@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include "display.h"
 #include "render-mode.h"
+#include "../algorithms/painters-algorithm.h"
 #include "../data-structures/array.h"
 #include "../data-structures/mesh.h"
 #include "../data-structures/vector.h"
@@ -155,16 +156,20 @@ void update(void) {
 			projected_points[j].y += (window_height / 2);
         }
 
+        float avg_depth = (transformend_verticies[0].z + transformend_verticies[1].z + transformend_verticies[2].z) / 3;
+
         triangle_t projected_triangle = {
             .points = {
                 projected_points[0],
                 projected_points[1],
                 projected_points[2]   
             },
-            .color = mesh_face.color
+            .color = mesh_face.color,
+            .average_depth = avg_depth
         };
         array_push(triangles_to_render, projected_triangle);
  	}
+    painters_algorithm(triangles_to_render);
 }
 
 void render(void) {
