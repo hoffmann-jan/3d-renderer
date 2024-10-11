@@ -2,7 +2,7 @@
 
 void render_mode_initialize(render_mode_t *mode) {
     mode->back_face_culling = false;
-    mode->filled_triangles_mode = false;
+    mode->filled_triangles_mode = true;
     mode->filled_triangles_wireframe_mode = false;
     mode->wireframe_mode = false;
     mode->wireframe_verticies_mode = false;

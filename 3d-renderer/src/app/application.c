@@ -29,7 +29,7 @@ render_mode_t render_mode;
 /////////////////////////////////////////////////////////////////////
 void setup(void) {
 	// Allocate the required memory in bytes to hold the color buffer 
-	color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
+	color_buffer = (color_t*)malloc(sizeof(color_t) * window_width * window_height);
 
 	// Creating a SDL texture that is used to display the color buffer
 	color_buffer_texture = SDL_CreateTexture(
@@ -43,8 +43,8 @@ void setup(void) {
     render_mode_initialize(&render_mode);
 
 	// Loads the cube values in the mesh data structure
-	// load_cube_mesh_data();
-	load_obj_file("./assets/f22.obj");
+	load_cube_mesh_data();
+	// load_obj_file("./assets/f22.obj");
 }
 
 void process_input(void) {
@@ -146,18 +146,24 @@ void update(void) {
             }
         }
 
-		triangle_t projected_triangle;
+        vec2_t projected_points[3];
 
         for (int j = 0; j < 3; j++) {
-			vec2_t projected_point = project(transformend_verticies[j]);
+			projected_points[j] = project(transformend_verticies[j]);
 
-			projected_point.x += (window_width / 2),
-			projected_point.y += (window_height / 2),
+			projected_points[j].x += (window_width / 2);
+			projected_points[j].y += (window_height / 2);
+        }
 
-			projected_triangle.points[j] = projected_point;
-		}
-
-		array_push(triangles_to_render, projected_triangle);
+        triangle_t projected_triangle = {
+            .points = {
+                projected_points[0],
+                projected_points[1],
+                projected_points[2]   
+            },
+            .color = mesh_face.color
+        };
+        array_push(triangles_to_render, projected_triangle);
  	}
 }
 
@@ -174,7 +180,7 @@ void render(void) {
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
                 triangle.points[2].x, triangle.points[2].y,
-                0xFFA9A9A9
+                triangle.color
             );
         }
         if (render_mode.filled_triangles_wireframe_mode) {
@@ -182,7 +188,7 @@ void render(void) {
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
                 triangle.points[2].x, triangle.points[2].y,
-                0xFFA9A9A9
+                triangle.color
             );
             draw_triangle(
                 triangle.points[0].x, triangle.points[0].y,
