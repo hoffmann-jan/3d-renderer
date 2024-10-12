@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include "display.h"
-#include "render-mode.h"
+#include "settings.h"
 #include "../algorithms/painters-algorithm.h"
 #include "../data-structures/array.h"
 #include "../data-structures/mesh.h"
@@ -23,7 +23,8 @@ int previus_frame_time = 0;
 vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
 float fov_factor = 640; 
 
-render_mode_t render_mode;
+enum render_mode_e render_mode;
+enum culling_e culling_mode;
 
 /////////////////////////////////////////////////////////////////////
 // Setup function to initialize variables and game objects
@@ -41,7 +42,8 @@ void setup(void) {
 		window_height
 	);
 
-    render_mode_initialize(&render_mode);
+    render_mode = WIREFRAME;
+    culling_mode = BACK_FACE_CULLING;
 
 	// Loads the cube values in the mesh data structure
 	load_cube_mesh_data();
@@ -60,17 +62,17 @@ void process_input(void) {
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				is_running = false;
             if (event.key.keysym.sym == SDLK_1)
-                render_mode_set_wireframe_with_verticies_mode(&render_mode);
+                render_mode = WIREFRAME_VERTICIES;
             if (event.key.keysym.sym == SDLK_2)
-                render_mode_set_wireframe_mode(&render_mode);
+                render_mode = WIREFRAME;
             if (event.key.keysym.sym == SDLK_3)
-                render_mode_set_filled_triangles_mode(&render_mode);
+                render_mode = FILLED_TRIANGLES;
             if (event.key.keysym.sym == SDLK_4)
-                render_mode_set_filled_triangles_with_wireframe_mode(&render_mode);
+                render_mode = FILLED_TRIANGLES_WIREFRAME;
             if (event.key.keysym.sym == SDLK_c)
-                render_mode_enable_back_face_culling(&render_mode);
+                culling_mode = BACK_FACE_CULLING;
             if (event.key.keysym.sym == SDLK_d)
-                render_mode_disable_back_face_culling(&render_mode);
+                culling_mode = NO_CULLING;
 			break;	
 	}
 }
@@ -127,7 +129,7 @@ void update(void) {
             transformend_verticies[j] = transformed_vertex;
         }
 
-        if (render_mode.back_face_culling) {
+        if (render_mode == BACK_FACE_CULLING) {
             // Check backface culling
             vec3_t vector_a = transformend_verticies[0]; /*   A   */
             vec3_t vector_b = transformend_verticies[1]; /*  / \  */
@@ -180,7 +182,7 @@ void render(void) {
 	{
 		triangle_t triangle = triangles_to_render[i];
 
-        if (render_mode.filled_triangles_mode) {
+        if (render_mode == FILLED_TRIANGLES) {
             draw_filled_triangle(
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
@@ -188,7 +190,7 @@ void render(void) {
                 triangle.color
             );
         }
-        if (render_mode.filled_triangles_wireframe_mode) {
+        if (render_mode == FILLED_TRIANGLES_WIREFRAME) {
             draw_filled_triangle(
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
@@ -202,7 +204,7 @@ void render(void) {
                 0xFF00FF00
             );
         }
-        if (render_mode.wireframe_mode) {
+        if (render_mode == WIREFRAME) {
             draw_triangle(
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
@@ -210,7 +212,7 @@ void render(void) {
                 0xFF00FF00
             );
         }
-        if (render_mode.wireframe_verticies_mode) {
+        if (render_mode == WIREFRAME_VERTICIES) {
             draw_triangle(
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
