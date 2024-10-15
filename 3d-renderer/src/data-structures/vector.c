@@ -136,3 +136,22 @@ void vec2_normalize(vec2_t* v) {
     v->x /= lengt;
     v->y /= lengt;
 }
+
+vec3_t vec3_from_vec4(vec4_t* v4_ptr) {
+    vec3_t result = {
+        .x = v4_ptr->x,
+        .y = v4_ptr->y,
+        .z = v4_ptr->z
+    };
+    return result;
+}
+
+vec4_t vec4_from_vec3(vec3_t* v3_ptr) {
+    vec4_t result = {
+        .x = v3_ptr->x,
+        .y = v3_ptr->y,
+        .z = v3_ptr->z,
+        .w = 1
+    };
+    return result;
+}

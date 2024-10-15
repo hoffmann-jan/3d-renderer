@@ -6,6 +6,7 @@
 #include "settings.h"
 #include "../algorithms/painters-algorithm.h"
 #include "../data-structures/array.h"
+#include "../data-structures/matrix.h"
 #include "../data-structures/mesh.h"
 #include "../data-structures/vector.h"
 
@@ -102,9 +103,15 @@ void update(void) {
 
 	triangles_to_render = NULL;
 
+    // change the mesh scale/rotation per animation frame
 	mesh.rotation.x += 0.02;
 	mesh.rotation.y += 0.01;
 	mesh.rotation.z += 0.00;
+    mesh.scale.x += 0.002;
+    mesh.scale.y += 0.001;
+
+    // Create a scale matrix that will be used to multiply the mesh vertices
+    matrix_4by4_t scale_matrix = matrix_4by4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z, 1);
 
 	int number_of_faces = array_length(mesh.faces);
 	for (int i = 0; i < number_of_faces; i++) {
@@ -115,15 +122,15 @@ void update(void) {
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1];
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-        vec3_t transformend_verticies[3];
+        vec4_t transformend_verticies[3];
 
 		for (int j = 0; j < 3; j++) {
-			vec3_t transformed_vertex = face_vertices[j];
+			vec4_t transformed_vertex = vec4_from_vec3(&face_vertices[j]);
 
-			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
-			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+            // use matrix to scale original vertex
+            transformed_vertex = matrix_4by4_multiply_with_vec4(scale_matrix, transformed_vertex);
 
+            // translate the vertex away from camera
 			transformed_vertex.z += 5;
 
             transformend_verticies[j] = transformed_vertex;
@@ -131,9 +138,9 @@ void update(void) {
 
         if (render_mode == BACK_FACE_CULLING) {
             // Check backface culling
-            vec3_t vector_a = transformend_verticies[0]; /*   A   */
-            vec3_t vector_b = transformend_verticies[1]; /*  / \  */
-            vec3_t vector_c = transformend_verticies[2]; /* C---B */
+            vec3_t vector_a = vec3_from_vec4(&transformend_verticies[0]); /*   A   */
+            vec3_t vector_b = vec3_from_vec4(&transformend_verticies[1]); /*  / \  */
+            vec3_t vector_c = vec3_from_vec4(&transformend_verticies[2]); /* C---B */
 
             vec3_t vector_ab = vec3_subtract(vector_b, vector_a);
             vec3_t vector_ac = vec3_subtract(vector_c, vector_a);
@@ -152,7 +159,7 @@ void update(void) {
         vec2_t projected_points[3];
 
         for (int j = 0; j < 3; j++) {
-			projected_points[j] = project(transformend_verticies[j]);
+			projected_points[j] = project(vec3_from_vec4(&transformend_verticies[j]));
 
 			projected_points[j].x += (window_width / 2);
 			projected_points[j].y += (window_height / 2);
