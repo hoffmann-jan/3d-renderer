@@ -104,14 +104,21 @@ void update(void) {
 	triangles_to_render = NULL;
 
     // change the mesh scale/rotation per animation frame
-	mesh.rotation.x += 0.02;
+	mesh.rotation.x += 0.01;
 	mesh.rotation.y += 0.01;
-	mesh.rotation.z += 0.00;
-    mesh.scale.x += 0.002;
-    mesh.scale.y += 0.001;
+	mesh.rotation.z += 0.01;
+    // mesh.scale.x += 0.002;
+    // mesh.scale.y += 0.001;
+    // mesh.translation.x += 0.005;
+    // translate the vertex away from camera
+    mesh.translation.z = 5;
 
     // Create a scale matrix that will be used to multiply the mesh vertices
     matrix_4by4_t scale_matrix = matrix_4by4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z, 1);
+    matrix_4by4_t translation_matrix = matrix_4by4_make_translation(mesh.translation.x, mesh.translation.y, mesh.translation.z);
+    matrix_4by4_t rotation_matrix_x = matrix_4by4_make_rotation_x(mesh.rotation.x);
+    matrix_4by4_t rotation_matrix_y = matrix_4by4_make_rotation_y(mesh.rotation.y);
+    matrix_4by4_t rotation_matrix_z = matrix_4by4_make_rotation_z(mesh.rotation.z);
 
 	int number_of_faces = array_length(mesh.faces);
 	for (int i = 0; i < number_of_faces; i++) {
@@ -127,11 +134,20 @@ void update(void) {
 		for (int j = 0; j < 3; j++) {
 			vec4_t transformed_vertex = vec4_from_vec3(&face_vertices[j]);
 
-            // use matrix to scale original vertex
-            transformed_vertex = matrix_4by4_multiply_with_vec4(scale_matrix, transformed_vertex);
+            // create world matrix
+            matrix_4by4_t world_matrix = matrix_4by4_make_identity();
 
-            // translate the vertex away from camera
-			transformed_vertex.z += 5;
+            /* ORDER MATTERS */
+            // use matrix to scale original vertex
+            world_matrix = matrix_4by4_multiply_by_matrix_4by4(scale_matrix, world_matrix);
+            // use matricies to rotate original vertex
+            world_matrix = matrix_4by4_multiply_by_matrix_4by4(rotation_matrix_z, world_matrix);
+            world_matrix = matrix_4by4_multiply_by_matrix_4by4(rotation_matrix_y, world_matrix);
+            world_matrix = matrix_4by4_multiply_by_matrix_4by4(rotation_matrix_x, world_matrix);
+            // use matrix to translate original vertex
+            world_matrix = matrix_4by4_multiply_by_matrix_4by4(translation_matrix, world_matrix);
+
+            transformed_vertex = matrix_4by4_multiply_by_vec4(world_matrix, transformed_vertex);
 
             transformend_verticies[j] = transformed_vertex;
         }
